@@ -1,0 +1,5 @@
+openpyxl
+ultralytics
+transformers
+pytorch-lightning
+timm

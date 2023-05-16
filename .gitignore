@@ -1,0 +1,7 @@
+# directories
+__pycache__
+.vscode/
+weights/
+runs/
+
+# files
