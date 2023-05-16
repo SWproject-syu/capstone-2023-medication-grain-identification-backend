@@ -1,6 +1,7 @@
 # directories
 __pycache__
 .vscode/
+data/
 weights/
 runs/
 
