@@ -1,7 +1,7 @@
-openpyxl
 ultralytics
 transformers
 pytorch-lightning
 timm
 fastapi
 uvicorn
+opencv-python

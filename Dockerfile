@@ -1,7 +1,7 @@
 FROM nvidia/cuda:11.3.1-cudnn8-runtime-ubuntu20.04
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
+    python-is-python3 \
     python3-pip \
     python3-setuptools \
     git \
@@ -19,4 +19,4 @@ RUN gdown --fuzzy https://drive.google.com/file/d/13hkj0zLKpBb-lxJ2yrPZLPARfidfB
 RUN unzip /pill-identification-server/weights.zip -d /pill-identification-server/weights \
     && rm /pill-identification-server/weights.zip
 
-CMD python -m uvicorn main:app --host 0.0.0.0 --port 80
+CMD python -m uvicorn app.main:app --host 0.0.0.0 --port 80
