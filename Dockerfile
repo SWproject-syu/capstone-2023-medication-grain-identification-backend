@@ -14,9 +14,9 @@ RUN git clone https://github.com/leeyeoreum02/pill-identification.git /pill-iden
 RUN pip install -r requirements.txt
 
 RUN pip install gdown
-RUN mkdir /pill-identification-server/data /pill-identification-server/weights
-RUN gdown -O /pill-identification-server/data/OpenData_PotOpenTabletIdntfc20230319.xls \
-    --fuzzy https://docs.google.com/spreadsheets/d/13qsKWSgpOyVj-J9Voro9p7IWTbUlBksp/edit?usp=sharing&ouid=103679390798631008004&rtpof=true&sd=true
+RUN mkdir /pill-identification-server/weights
 RUN gdown --fuzzy https://drive.google.com/file/d/13hkj0zLKpBb-lxJ2yrPZLPARfidfBbM8/view?usp=share_link
 RUN unzip /pill-identification-server/weights.zip -d /pill-identification-server/weights \
     && rm /pill-identification-server/weights.zip
+
+CMD python -m uvicorn main:app --host 0.0.0.0 --port 80

@@ -3,3 +3,5 @@ ultralytics
 transformers
 pytorch-lightning
 timm
+fastapi
+uvicorn
