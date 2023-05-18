@@ -6,3 +6,4 @@ weights/
 runs/
 
 # files
+docker_command.sh
