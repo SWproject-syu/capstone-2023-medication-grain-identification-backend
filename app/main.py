@@ -239,7 +239,10 @@ def predict(encoded_frame):
 
 @app.post('/get_prediction')
 async def get_prediction(encoded_image):
-    return predict(encoded_image)
+    try:
+        return predict(encoded_image)
+    except:
+        raise HTTPException(status_code=400, detail='Invalid image file.')
 
 
 # if __name__ == '__main__':
