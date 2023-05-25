@@ -25,4 +25,6 @@ RUN gdown --fuzzy https://drive.google.com/file/d/13hkj0zLKpBb-lxJ2yrPZLPARfidfB
 RUN unzip /pill-identification-server/weights.zip -d /pill-identification-server/weights \
     && rm /pill-identification-server/weights.zip
 
+EXPOSE 3636
+
 CMD uvicorn app.main:app --host 210.94.242.37 --port 3636
