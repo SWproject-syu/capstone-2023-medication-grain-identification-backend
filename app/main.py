@@ -164,7 +164,7 @@ def predict(encoded_frame):
     model_tiny_vit = PillModule.load_from_checkpoint(checkpoint_path=tiny_vit_weight_path)
     vit_transform = get_transform()
 
-    prediction = {'shape_preds': shape_preds, 'id_preds': id_preds, 'color_preds': color_preds}
+    prediction = {'shape_preds': [], 'id_preds': [], 'color_preds': []}
 
     print('Loading a frame ...')
     # image_path = 'samples/KakaoTalk_20230320_163338129.jpg'
@@ -194,6 +194,8 @@ def predict(encoded_frame):
         # cv2.imwrite('crop.jpg', cropped[:,:,::-1])
         donut_inputs.append(Image.fromarray(cropped))
         vit_inputs.append(vit_transform(cropped.copy()))
+    
+    prediction['shape_preds'].extend(shape_preds)
         
     print('Predicting Donut ...')
     pixel_values = processor_donut(donut_inputs, return_tensors="pt").pixel_values
@@ -220,12 +222,16 @@ def predict(encoded_frame):
         seq = re.sub(r"<.*?>", "", seq, count=1).strip()  # remove first task start token
         seq = processor_donut.token2json(seq)
         id_preds.append(seq)
+    
+    prediction['id_preds'].extend(id_preds)
 
     print('Predicting Tiny ViT ...')
     vit_outputs = model_tiny_vit(torch.stack(vit_inputs).to(device))
     batch_idx, pred_idx = torch.where(torch.softmax(vit_outputs, dim=-1) > 0.5)
     for i in batch_idx.unique():
         color_preds.append(','.join(map(str, pred_idx[batch_idx == i].detach().cpu().tolist())))
+
+    prediction['color_preds'].extend(color_preds)
 
     print('Returning ...')
     return prediction
