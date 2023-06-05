@@ -14,6 +14,7 @@ RUN apt-get install -y --no-install-recommends \
     unzip \
     libgl1-mesa-glx \
     libglib2.0-0 \
+    iptables \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /pill-identification-server
 RUN git clone https://github.com/leeyeoreum02/pill-identification.git /pill-identification-server
@@ -25,4 +26,6 @@ RUN gdown --fuzzy https://drive.google.com/file/d/13hkj0zLKpBb-lxJ2yrPZLPARfidfB
 RUN unzip /pill-identification-server/weights.zip -d /pill-identification-server/weights \
     && rm /pill-identification-server/weights.zip
 
-CMD uvicorn app.main:app --host 0.0.0.0 --port 80
+EXPOSE 3636
+
+CMD uvicorn app.main:app --host 0.0.0.0 --port 3636

@@ -2,7 +2,7 @@ import base64
 import re
 
 import cv2
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import numpy as np
 # import openai
 from PIL import Image
@@ -68,7 +68,7 @@ def predict(encoded_frame):
     model_tiny_vit = PillModule.load_from_checkpoint(checkpoint_path=tiny_vit_weight_path)
     vit_transform = get_transform()
 
-    prediction = {'shape_preds': shape_preds, 'id_preds': id_preds, 'color_preds': color_preds}
+    prediction = {'shape_preds': [], 'id_preds': [], 'color_preds': []}
 
     print('Loading a frame ...')
     frame_bytes = base64.b64encode(encoded_frame['frame'])
@@ -86,6 +86,8 @@ def predict(encoded_frame):
         cropped = image[y1:y2, x1:x2, :]
         donut_inputs.append(Image.fromarray(cropped))
         vit_inputs.append(vit_transform(cropped.copy()))
+    
+    prediction['shape_preds'].extend(shape_preds)
         
     print('Predicting Donut ...')
     pixel_values = processor_donut(donut_inputs, return_tensors="pt").pixel_values
@@ -112,6 +114,8 @@ def predict(encoded_frame):
         seq = re.sub(r"<.*?>", "", seq, count=1).strip()  # remove first task start token
         seq = processor_donut.token2json(seq)
         id_preds.append(seq)
+    
+    prediction['id_preds'].extend(id_preds)
 
     print('Predicting Tiny ViT ...')
     vit_outputs = model_tiny_vit(torch.stack(vit_inputs).to(device))
@@ -119,10 +123,15 @@ def predict(encoded_frame):
     for i in batch_idx.unique():
         color_preds.append(','.join(map(str, pred_idx[batch_idx == i].detach().cpu().tolist())))
 
+    prediction['color_preds'].extend(color_preds)
+
     print('Returning ...')
     return prediction
 
 
 @app.post('/get_prediction')
 async def get_prediction(encoded_image):
-    return predict(encoded_image)
+    try:
+        return predict(encoded_image)
+    except:
+        raise HTTPException(status_code=400, detail='Invalid image file.')
