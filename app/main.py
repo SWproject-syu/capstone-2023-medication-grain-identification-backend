@@ -52,22 +52,15 @@ tiny_vit_weight_path = 'weights/epoch=98-val_f1=0.88.ckpt'
     
 device = 'cuda'
 
-shape_preds = []
 model_yolov8 = YOLO(yolov8_weight_path)
 
-donut_inputs = []
-id_preds = []
 processor_donut = DonutProcessor.from_pretrained(donut_weight_path)
 model_donut = VisionEncoderDecoderModel.from_pretrained(donut_weight_path)
 model_donut.eval()
 model_donut.to(device)
 
-vit_inputs = []
-color_preds = []
 model_tiny_vit = PillModule.load_from_checkpoint(checkpoint_path=tiny_vit_weight_path)
 vit_transform = get_transform()
-
-prediction = {'shape_preds': [], 'id_preds': [], 'color_preds': []}
 
 
 def predict(encoded_frame):
@@ -201,6 +194,16 @@ async def get_prediction(encoded_image):
 
 @app.post('/test_image')
 async def test_image(frame):
+    shape_preds = []
+    
+    donut_inputs = []
+    id_preds = []
+
+    vit_inputs = []
+    color_preds = []
+
+    prediction = {'shape_preds': [], 'id_preds': [], 'color_preds': []}
+
     print('Loading a frame ...')
     frame_bytes = base64.b64encode(frame)
     frame_array = np.frombuffer(frame_bytes, dtype=np.uint8)
