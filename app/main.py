@@ -113,7 +113,7 @@ def predict(encoded_frame):
     
     # device = 'cuda'
 
-    device = 'cuda'
+    # device = 'cuda'
 
     # shape_preds = []
     # model_yolov8 = YOLO(yolov8_weight_path)

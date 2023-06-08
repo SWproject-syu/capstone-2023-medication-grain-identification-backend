@@ -8,15 +8,21 @@
 # --------------------------------------------------------
 
 import itertools
+from typing import Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
+import timm
 from timm.models.layers import DropPath as TimmDropPath,\
     to_2tuple, trunc_normal_
 from timm.models.registry import register_model
-from timm.models.helpers import build_model_with_cfg
-from typing import Tuple
+try:
+    # timm.__version__ >= "0.6"
+    from timm.models._builder import build_model_with_cfg
+except (ImportError, ModuleNotFoundError):
+    # timm.__version__ < "0.6"
+    from timm.models.helpers import build_model_with_cfg
 
 
 class Conv2d_BN(torch.nn.Sequential):
@@ -282,6 +288,7 @@ class Attention(torch.nn.Module):
 
 class TinyViTBlock(nn.Module):
     r""" TinyViT Block.
+
     Args:
         dim (int): Number of input channels.
         input_resolution (tuple[int, int]): Input resulotion.
@@ -378,6 +385,7 @@ class TinyViTBlock(nn.Module):
 
 class BasicLayer(nn.Module):
     """ A basic TinyViT layer for one stage.
+
     Args:
         dim (int): Number of input channels.
         input_resolution (tuple[int]): Input resolution.
@@ -521,7 +529,6 @@ class TinyViT(nn.Module):
         # layers -> blocks (depth)
         depth = sum(self.depths)
         lr_scales = [decay_rate ** (depth - i - 1) for i in range(depth)]
-        print("LR SCALES:", lr_scales)
 
         def _set_lr_scale(m, scale):
             for p in m.parameters():
@@ -616,11 +623,18 @@ def _create_tiny_vit(variant, pretrained=False, **kwargs):
             not k.endswith('attention_bias_idxs')}
         return state_dict
 
-    return build_model_with_cfg(
-        TinyViT, variant, pretrained,
-        default_cfg=cfg,
-        pretrained_filter_fn=_pretrained_filter_fn,
-        **kwargs)
+    if timm.__version__ >= "0.6":
+        return build_model_with_cfg(
+            TinyViT, variant, pretrained,
+            pretrained_cfg=cfg,
+            pretrained_filter_fn=_pretrained_filter_fn,
+            **kwargs)
+    else:
+        return build_model_with_cfg(
+            TinyViT, variant, pretrained,
+            default_cfg=cfg,
+            pretrained_filter_fn=_pretrained_filter_fn,
+            **kwargs)
 
 
 @register_model
