@@ -20,6 +20,16 @@ from models.tiny_vit import tiny_vit_21m_224
 COLOR_NUM_CLASSES = 18
 
 
+class PillModule(pl.LightningModule):
+    def __init__(self) -> None:
+        super().__init__()
+        self.model = tiny_vit_21m_224(pretrained=True)
+        self.model.head = nn.Linear(576, COLOR_NUM_CLASSES)
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self.model(x)
+
+
 app = FastAPI()
 
 print('Intializing ...')
@@ -57,16 +67,6 @@ def get_transform():
             [0.229, 0.224, 0.225]
         )
     ])
-
-
-class PillModule(pl.LightningModule):
-    def __init__(self) -> None:
-        super().__init__()
-        self.model = tiny_vit_21m_224(pretrained=True)
-        self.model.head = nn.Linear(576, COLOR_NUM_CLASSES)
-
-    def forward(self, x: Tensor) -> Tensor:
-        return self.model(x)
 
 
 def predict(encoded_frame):
