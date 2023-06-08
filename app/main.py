@@ -184,7 +184,7 @@ def predict(encoded_frame):
 
 
 @app.post('/get_prediction')
-async def get_prediction(encoded_image):
+async def get_prediction(encoded_image: str):
     # print('Hello')
     try:
         return predict(encoded_image)
@@ -193,7 +193,7 @@ async def get_prediction(encoded_image):
 
 
 @app.post('/test_image')
-async def test_image(frame):
+async def test_image(frame: str):
     shape_preds = []
     
     donut_inputs = []
