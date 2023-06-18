@@ -264,3 +264,8 @@ async def test_image(frame: str):
 
     print('Returning ...')
     return prediction
+
+
+@app.post('/test_image_input')
+async def test_input_image(frame: str):
+    print(frame)
