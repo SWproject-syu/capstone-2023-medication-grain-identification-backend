@@ -170,8 +170,8 @@ async def test_predict(frame: UploadFile = File(...)):
                 sim = prev_sim
                 target_id = i
 
-        if target_id > 0:
-            results['results'].append(id_to_ret[i])
+        if target_id != -1:
+            results['results'].append(id_to_ret[target_id])
 
     return results
 
@@ -240,8 +240,8 @@ async def predict_medicine(frame: UploadFile = File(...)):
                 sim = prev_sim
                 target_id = i
 
-        if target_id > 0:
-            results['results'].append(id_to_ret[i])
+        if target_id != -1:
+            results['results'].append(id_to_ret[target_id])
 
     return results
 
