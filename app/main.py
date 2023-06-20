@@ -144,8 +144,8 @@ async def test_input(frame: UploadFile = File(...)):
     return {}
 
 
-@app.post('test_predict')
-async def test_predict(frame: UploadFile = File(...), db: Session = Depends(get_db)):
+@app.post('/test_predict')
+async def test_predict(frame: UploadFile = File(...)):
     results = {'results': []}
     
     # print(frame)
@@ -158,13 +158,7 @@ async def test_predict(frame: UploadFile = File(...), db: Session = Depends(get_
         'shape_preds': ['장방형', '원형', '타원형', '타원형'],
         'id_preds': ['BK CMC', '618', '40', 'BK PH'],
         'color_preds': ['초록', '하양', '파랑', '하양'],
-    } 
-    
-    # if len(shape_preds) == 0:
-    #     return results
-    
-    # if len(id_preds) == 0:
-    #     return results
+    }
     
     prev_sim = 0
     target_id = -1
@@ -197,6 +191,78 @@ async def test_predict_query(frame: UploadFile = File(...), db: Session = Depend
         'id_preds': ['BK CMC', '618', '40', 'BK PH'],
         'color_preds': ['초록', '하양', '파랑', '하양'],
     }
+
+    query = '('
+    for i, (shape_pred, id_pred, color_pred) in enumerate(zip(*prediction.values())):
+        query += f'''
+            select   (
+            GREATEST(getScoreByCharacter("{id_pred}",m.char_front),getScoreByCharacter("{id_pred}",m.char_back)) -- 알약 앞뒤글자 유사도
+            * (select score from shape_score_list sh where shape_origin = "{shape_pred}" and shape_compare = m.dosage_name) -- 알약 형태 유사도
+            * GREATEST(getScoreByColor("{color_pred}",m.color_front),getScoreByColor("{color_pred}",m.color_back)) -- 알약 색상 유사도
+            ) score, m.*
+            from medicine m having score != 0 order by score desc limit 1;
+        '''
+        if i < len(prediction['shape_preds']) - 1:
+            query += ') union all ('
+    query += ')'
+    print(query)
+    query_result = db.execute(text(query))
+    results['results'].append(query_result)
+
+    return results
+
+
+@app.post('/predict_medicine')
+async def predict_medicine(frame: UploadFile = File(...)):
+    results = {'results': []}
+    
+    # print(frame)
+    contents = await frame.read()
+    nparr = np.fromstring(contents, np.uint8)
+    img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    print(img_np.shape, np.unique(img_np))
+
+    prediction = predict(img_np)
+    
+    if len(prediction['shape_preds']) == 0:
+        return results
+    
+    if len(prediction['id_preds']) == 0:
+        return results
+    
+    prev_sim = 0
+    target_id = -1
+    for pred in zip(*prediction.values()):
+        for i, row in metadata.iterrows():
+            pprd_row = preprocess_label(row)
+            sim = get_sim(pprd_row, pred)
+            if prev_sim < sim:
+                sim = prev_sim
+                target_id = i
+
+        if target_id > 0:
+            results['results'].append(id_to_ret[i])
+
+    return results
+
+
+@app.post('/predict_medicine_query')
+async def predict_medicine_query(frame: UploadFile = File(...), db: Session = Depends(get_db)):
+    results = {'results': []}
+    
+    # print(frame)
+    contents = await frame.read()
+    nparr = np.fromstring(contents, np.uint8)
+    img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    print(img_np.shape, np.unique(img_np))
+
+    prediction = predict(img_np)
+
+    if len(prediction['shape_preds']) == 0:
+        return results
+    
+    if len(prediction['id_preds']) == 0:
+        return results
 
     query = '('
     for i, (shape_pred, id_pred, color_pred) in enumerate(zip(*prediction.values())):
