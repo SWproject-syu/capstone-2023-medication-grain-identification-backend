@@ -1,9 +1,11 @@
 # directories
 __pycache__
 .vscode/
-data/
 weights/
 runs/
+data/*
+!data/OpenData_PotOpenTabletIdntfc20230319.xls
+!data/sim.json
 
 # files
 docker_command.sh

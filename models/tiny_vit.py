@@ -10,9 +10,9 @@
 import itertools
 from typing import Tuple
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
+from torch import nn, Tensor
 import timm
 from timm.models.layers import DropPath as TimmDropPath,\
     to_2tuple, trunc_normal_
@@ -23,6 +23,10 @@ try:
 except (ImportError, ModuleNotFoundError):
     # timm.__version__ < "0.6"
     from timm.models.helpers import build_model_with_cfg
+import pytorch_lightning as pl
+
+
+COLOR_NUM_CLASSES = 18
 
 
 class Conv2d_BN(torch.nn.Sequential):
@@ -702,3 +706,13 @@ def tiny_vit_21m_512(pretrained=False, **kwargs):
     )
     model_kwargs.update(kwargs)
     return _create_tiny_vit('tiny_vit_21m_512', pretrained, **model_kwargs)
+
+
+class PillModule(pl.LightningModule):
+    def __init__(self) -> None:
+        super().__init__()
+        self.model = tiny_vit_21m_224(pretrained=True)
+        self.model.head = nn.Linear(576, COLOR_NUM_CLASSES)
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self.model(x)
