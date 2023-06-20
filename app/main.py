@@ -21,7 +21,7 @@ from models.tiny_vit import PillModule
 from utils import get_transform, get_id_to_ret, preprocess_label, get_sim
 
 
-DATABASE_URL = 'mysql+mysqldb://admin:4dayworks$@yagiyagi-database.c3vckukxi7cg.ap-northeast-2.rds.amazonaws.com:3306/syu'
+
 METADATA_PATH = 'OpenData_PotOpenTabletIdntfc20230319.xls'
 
 
